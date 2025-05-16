@@ -15,48 +15,33 @@
 
 Player
    ↓ Input
-Controller     ← Input 처리, 이벤트 분기
+Controller     ← Input processing, Events
    ↓ Updates
-Model          ← 게임/비즈니스 로직
-   ↓ OnChange
-View           ← 데이터 렌더링 (UI)
-   ↓ Output
+Model          ← Game logic
+   ↓ OnChange ↑ Observes
+View           ← Formatting, Rendering
+   ↑ Sees
 Player
-
-Controller: 입력 처리 + 모델 호출
-Model: 게임 로직 보관 및 변경 감지
-View: 모델 변화를 감지해서 UI 반영
 
 ### 🧩 MVP (Model–View–Presenter)
 
 Player
-   ↓ Input
-View            ← UI & 입력 수신
-   ↓ UI Event
-Presenter       ← 입력 처리 + 렌더링 포맷 결정
-   ↓ Update
-Model           ← 게임 로직 처리
-   ↑ OnChange
-
-View: UI + 유저 입력 수신
-Presenter: UI 로직, 포맷, 모델 제어
-Model: 데이터/로직
-✅ 유니티에 적합한 구조 (유니티에서 View는 MonoBehaviour로 남고, 로직은 Presenter로 분리됨)
+   ↓ Input ↑ Sees
+View            ← Rendering, Events
+   ↓ OnEvent ↑ Updates
+Presenter       ← Input processing, Formatting
+   ↓ Updates ↑ OnChange
+Model           ← Game logic
 
 ### 🧩 MVVM (Model–View–ViewModel)
 
 Player
-   ↓ Input
-View              ← UI 표시 및 바인딩
+   ↓ Input ↑ Sees
+View 
    ⇅ Binding
-ViewModel         ← 데이터 포맷 + 상태 변화 감시
-   ↓ Update
-Model             ← 로직 처리
-
-View: UI (MonoBehaviour)
-ViewModel: 바인딩 대상 상태값 (ex: public string HealthText)
-Model: 도메인 로직
-⚠️ 유니티는 바인딩 엔진이 기본 제공되지 않아서 직접 구현이 필요함
+ViewModel 
+   ↓ Updates ↑ OnChange
+Model 
 
 ## 🧠 구성 비교
 | 패턴   | View       | 중간 계층                   | Model    |
