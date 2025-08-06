@@ -9,14 +9,15 @@ public class NetworkDropPool : MonoBehaviour, INetworkPrefabInstanceHandler
 
     void Start()
     {
-        // Netcode에 풀 등록
         NetworkManager.Singleton.PrefabHandler.AddHandler(dropPrefab, this);
     }
 
     void OnDestroy()
-    {    
-        // Netcode에서 풀 핸들러 제거
-        NetworkManager.Singleton.PrefabHandler.RemoveHandler(dropPrefab);
+    {
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.PrefabHandler != null)
+        {
+            NetworkManager.Singleton.PrefabHandler.RemoveHandler(dropPrefab);
+        }
     }
 
     public NetworkObject Instantiate(ulong ownerClientId, Vector3 position, Quaternion rotation)

@@ -11,6 +11,8 @@ public class Bomb : Installable
     [SerializeField] private BoxCollider2D boxCollider;
     [SerializeField] private SpriteRenderer spriteRenderer;
 
+    public Coroutine coroutine;
+
     public void Initialize(Vector2Int gridPos)
     {
         this.gridPos = gridPos;
@@ -61,11 +63,17 @@ public class Bomb : Installable
         return hp;
     }
 
-    public void Deactivate()
+    public void Deactivate(bool isServer)
     {
-        this.isActive = false;
-        gameObject.SetActive(false);
-        PlayerSpawner.Instance.GetPlayerObject(ownerClientId)
-            .GetComponent<PlayerStatus>().currentBombCount.Value--;
+        if (isActive)
+        {
+            this.isActive = false;
+            gameObject.SetActive(false);
+            if (isServer)
+            {
+                PlayerSpawner.Instance.GetPlayerObject(ownerClientId)
+                    .GetComponent<PlayerStatus>().currentBombCount.Value--;
+            }
+        }
     }
 }

@@ -225,7 +225,7 @@ public class PlayerController : NetworkBehaviour
         {
             Character.AnimationManager.Slash(twoHanded: false);
             Character.AnimationManager.SetIsSlashing(true);
-            PlaySlashClientRpc();
+            SlashServerRpc();
         }
 
         if (Input.GetKeyDown(KeyCode.Q))
@@ -234,11 +234,17 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
+    [ServerRpc]
+    void SlashServerRpc(ServerRpcParams rpcParams = default)
+    {
+        PlaySlashClientRpc();
+    }
 
     [ClientRpc]
     void PlaySlashClientRpc()
     {
         if (IsOwner) return;
+
         Character.AnimationManager.Slash(twoHanded: false);
         // Character.AnimationManager.SetIsSlashing(true);
     }

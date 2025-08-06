@@ -1289,7 +1289,7 @@ public class PlayerController : MonoBehaviour
         isDead = false;
     }
 
-    public void Rest()
+    public void Rest(Transform restPoint)
     {
         restPotionCount = maxRestPotionCount;
         playerStats.currentHealth = playerStats.maxHealth;
@@ -1301,6 +1301,7 @@ public class PlayerController : MonoBehaviour
         playerStats.staminaBar.SetCurrentStamina(playerStats.currentStamina);
         uIManager.PotionTextUpdate(restPotionCount);
 
+        respawnPoint = restPoint;
         transform.position = respawnPoint.position;
     }
 }

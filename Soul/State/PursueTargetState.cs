@@ -11,7 +11,9 @@ public class PursueTargetState : State
         if (enemyManager.isPerformingAction || enemyAnimatorManager.GetIsInteracting())
         {
             enemyAnimatorManager._animator.SetFloat("Vertical", 0, 0.1f, Time.deltaTime);
-            enemyManager.navMeshAgent.enabled = false;
+            //enemyManager.navMeshAgent.enabled = false;
+            enemyManager.navMeshAgent.isStopped = true;
+            enemyManager.navMeshAgent.updatePosition = false;
             return this;
         }
 
@@ -38,6 +40,8 @@ public class PursueTargetState : State
             enemyAnimatorManager._animator.SetFloat("Vertical", 1, 0.1f, Time.deltaTime);
             //
             enemyManager.navMeshAgent.enabled = true;
+            enemyManager.navMeshAgent.isStopped = false;
+            enemyManager.navMeshAgent.updatePosition = true;
             enemyManager.navMeshAgent.SetDestination(enemyManager.currentTarget.transform.position);
             //
         }
@@ -45,7 +49,9 @@ public class PursueTargetState : State
         {
             enemyAnimatorManager._animator.SetFloat("Vertical", 0f);
             //
-            enemyManager.navMeshAgent.enabled = false;
+            //enemyManager.navMeshAgent.enabled = false;
+            enemyManager.navMeshAgent.isStopped = true;
+            enemyManager.navMeshAgent.updatePosition = false;
             //
         }
 
@@ -55,7 +61,9 @@ public class PursueTargetState : State
         if (enemyManager.distanceFromTarget <= enemyManager.maximumAttackRange)
         {
             enemyAnimatorManager._animator.SetFloat("Vertical", 0f);
-            enemyManager.navMeshAgent.enabled = false;
+            //enemyManager.navMeshAgent.enabled = false;
+            enemyManager.navMeshAgent.isStopped = true;
+            enemyManager.navMeshAgent.updatePosition = false;
             return combatStanceState;
         }
         else
@@ -85,6 +93,8 @@ public class PursueTargetState : State
             Vector3 targetVelocity = enemyManager.enemyRigidBody.linearVelocity;
 
             enemyManager.navMeshAgent.enabled = true;
+            enemyManager.navMeshAgent.isStopped = false;
+            enemyManager.navMeshAgent.updatePosition = true;
             enemyManager.navMeshAgent.SetDestination(enemyManager.currentTarget.transform.position);
             enemyManager.enemyRigidBody.linearVelocity = targetVelocity;
             enemyManager.transform.rotation = Quaternion.Slerp(enemyManager.transform.rotation, enemyManager.navMeshAgent.transform.rotation, enemyManager.rotationSpeed / Time.deltaTime);

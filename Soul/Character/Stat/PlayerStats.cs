@@ -59,7 +59,7 @@ public class PlayerStats : CharacterStats
 
         healthBar.SetCurrentHealth(currentHealth);
 
-        if (hit)
+        if (hit && currentHealth > 0)
         {
             animationController.PlayTargetAnimation("Hit_F_1", true);
         }
@@ -70,11 +70,6 @@ public class PlayerStats : CharacterStats
             currentHealth = 0;
             animationController.SetBool("Dead", true);
             animationController.PlayTargetAnimation("Hit_F_5_Die", true);
-
-            // Die
-            // GetComponent<PlayerController>().enabled = false;
-            // GetComponent<Rigidbody>().isKinematic = true;
-            // GetComponent<CapsuleCollider>().enabled = false;
         }
     }
 

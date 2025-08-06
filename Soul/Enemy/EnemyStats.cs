@@ -77,6 +77,10 @@ public class EnemyStats : CharacterStats
             animator.SetBool("Die", true);
             // Die();
             GetComponent<CapsuleCollider>().enabled = false;
+            if (enemyType == EnemyType.Boss)
+            {
+                GetComponent<BossWall>().wall.SetActive(false);
+            }
 
             return true;
         }

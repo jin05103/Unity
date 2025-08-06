@@ -17,12 +17,19 @@ public class AnimationController : AnimatorManager
 
     IEnumerator _shieldBlend;
 
-    private void Start()
-    {
+    private void Awake() {
         _animator = GetComponent<Animator>();
         _animator.applyRootMotion = false;
         _animator.SetBool("JumpEnd", true);
+        currentLayerIndex = 0;
     }
+
+    // private void Start()
+    // {
+    //     _animator = GetComponent<Animator>();
+    //     _animator.applyRootMotion = false;
+    //     _animator.SetBool("JumpEnd", true);
+    // }
 
     public void SetFloat(string name, float value)
     {
@@ -48,7 +55,18 @@ public class AnimationController : AnimatorManager
     {
         _animator.applyRootMotion = isInteracting;
         _animator.SetBool("IsInteracting", isInteracting);
-        _animator.CrossFade(targetAnim, 0.2f, currentLayerIndex);
+
+        AnimatorStateInfo stateInfo = _animator.GetCurrentAnimatorStateInfo(currentLayerIndex);
+        bool isHitAnim = targetAnim == "Hit_F_1";
+        if (stateInfo.IsName(targetAnim) && isHitAnim)
+        {
+            // 이미 같은 애니메이션이 재생 중이면 0프레임부터 강제 재생
+            _animator.Play(targetAnim, currentLayerIndex, 0);
+        }
+        else
+        {
+            _animator.CrossFade(targetAnim, 0.2f, currentLayerIndex);
+        }
     }
 
     public void SetAnim()

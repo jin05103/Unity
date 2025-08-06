@@ -39,6 +39,7 @@ public class MapManager : NetworkBehaviour
 
     public bool isGameStarted = false;
     public bool isGameOver = false;
+    private List<Drop> activeDrops = new List<Drop>();
 
     private static readonly Vector2Int[] directions =
     {
@@ -100,7 +101,12 @@ public class MapManager : NetworkBehaviour
         foreach (Bomb bomb in toExplode)
         {
             // ExplodeBomb(bomb);
-            StartCoroutine(ExplodeBombCoroutine(bomb));
+            if (bomb.coroutine != null)
+            {
+                StopCoroutine(bomb.coroutine);
+            }
+            bomb.coroutine = StartCoroutine(ExplodeBombCoroutine(bomb));
+            //StartCoroutine(ExplodeBombCoroutine(bomb));
             RemoveBomb(bomb.gridPos);
         }
 
@@ -179,6 +185,7 @@ public class MapManager : NetworkBehaviour
     {
         if (bombMap.TryGetValue(pos, out var bomb))
         {
+            bombMap[pos].Deactivate(IsServer);
             bombMap.Remove(pos);
         }
     }
@@ -300,15 +307,22 @@ public class MapManager : NetworkBehaviour
                 block.Respawn(BlockType.Stone);
                 break;
             case InstallableType.Bomb:
-                Bomb bomb = GetBombAt(pos);
-                PlayerStatus playerStatus = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId).gameObject
-                    .GetComponent<PlayerStatus>();
-                if (bomb == null)
+                Bomb bomb;
+                if (!bombMap.TryGetValue(pos, out bomb))
                 {
                     bomb = bombPool.Get();
                     RegisterBomb(pos, bomb);
                 }
-                bomb.Spawn(pos, playerStatus.bombDamage.Value, playerStatus.bombRadius.Value, clientId);
+                if (IsServer)
+                {
+                    PlayerStatus playerStatus = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId).gameObject
+                        .GetComponent<PlayerStatus>();
+                    bomb.Spawn(pos, playerStatus.bombDamage.Value, playerStatus.bombRadius.Value, clientId);
+                }
+                else
+                {
+                    bomb.Spawn(pos, 0, 0, clientId);
+                }
                 break;
         }
     }
@@ -341,7 +355,7 @@ public class MapManager : NetworkBehaviour
             MiningFXClientRpc(pos);
             if (remainingHp <= 0)
             {
-                bomb.Deactivate();
+                bomb.Deactivate(IsServer);
                 RemoveBombClientRpc(pos);
                 RemoveBomb(pos);
             }
@@ -361,6 +375,12 @@ public class MapManager : NetworkBehaviour
         fxObject.SetActive(true);
         effect.Play();
         StartCoroutine(ReturnMiningFXToPool(effect, fxObject));
+
+        Block block = GetBlockAt(pos);
+        if (block.gameObject.activeSelf)
+        {
+            block.ColorChange();
+        }
     }
 
     private IEnumerator ReturnMiningFXToPool(ParticleSystem effect, GameObject fxObject)
@@ -396,6 +416,7 @@ public class MapManager : NetworkBehaviour
         if (bombMap.TryGetValue(pos, out var bomb))
         {
             // 
+            RemoveBomb(pos);
             bombPool.Return(bomb);
         }
     }
@@ -413,7 +434,7 @@ public class MapManager : NetworkBehaviour
     {
         if (bomb == null || !bomb.isActive) yield break;
 
-        bomb.Deactivate();
+        bomb.Deactivate(IsServer);
         RemoveBombClientRpc(bomb.gridPos);
         ExplodeBombClientRpc(bomb.gridPos);
 
@@ -472,6 +493,8 @@ public class MapManager : NetworkBehaviour
                     }
                 }
 
+                RemoveDropsAtPosition(checkPos);
+
                 Block block = GetBlockAt(checkPos);
                 if (block != null && block.gameObject.activeSelf)
                 {
@@ -523,21 +546,28 @@ public class MapManager : NetworkBehaviour
         fxPool.ReturnBombFX(fxObject);
     }
 
-    // private ulong[] CheckPlayerOnExplosion(Vector2Int pos)
-    // {
-    //     Bounds explosionBounds = new Bounds(new Vector3(pos.x, pos.y, 0), new Vector3(1, 1, 0));
-    //     List<ulong> damagedClientIds = new List<ulong>();
-    //     foreach (var player in PlayerSpawner.Instance.GetAllPlayers())
-    //     {
-    //         if (player == null || !player.gameObject.activeSelf) continue;
+    private void RemoveDropsAtPosition(Vector2Int pos)
+    {
+        Vector2 explosionCenter = new Vector2(pos.x + 0.5f, pos.y + 0.5f);
+        List<Drop> toRemove = new List<Drop>();
 
-    //         if (explosionBounds.Intersects(player.GetComponent<Collider2D>().bounds))
-    //         {
-    //             damagedClientIds.Add(player.GetComponent<NetworkObject>().OwnerClientId);
-    //         }
-    //     }
-    //     return damagedClientIds.ToArray();
-    // }
+        foreach (var drop in activeDrops)
+        {
+            if (drop == null || !drop.gameObject.activeSelf) continue;
+
+            Vector2 dropCenter = drop.transform.position;
+            if (new Bounds(new Vector3(pos.x, pos.y, 0), new Vector3(1, 1, 0)).Contains(dropCenter))
+            {
+                toRemove.Add(drop);
+            }
+        }
+
+        foreach (var drop in toRemove)
+        {
+            activeDrops.Remove(drop);
+            drop.DespawnDrop();
+        }
+    }
 
     private ulong[] CheckPlayerOnExplosion(Vector2Int pos)
     {
@@ -585,6 +615,14 @@ public class MapManager : NetworkBehaviour
         dropObj.transform.position = pos;
         dropObj.GetComponent<NetworkObject>().Spawn();
         dropObj.GetComponent<Drop>().Init(type, value);
+        activeDrops.Add(dropObj.GetComponent<Drop>());
     }
 
+    public void RemoveDrop(Drop drop)
+    {
+        if (drop != null && activeDrops.Contains(drop))
+        {
+            activeDrops.Remove(drop);
+        }
+    }
 }

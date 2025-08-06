@@ -51,10 +51,16 @@ public class Drop : NetworkBehaviour
             if (playerStatus.isDead) return;
 
             playerStatus.AddBlockTypePiece_ServerRpc(dropType, value);
-            if (NetworkObject != null && NetworkObject.IsSpawned)
-            {
-                NetworkObject.Despawn();
-            }
+            MapManager.Instance.RemoveDrop(this);
+            DespawnDrop();
+        }
+    }
+
+    public void DespawnDrop()
+    {
+        if (NetworkObject != null && NetworkObject.IsSpawned)
+        {
+            NetworkObject.Despawn();
         }
     }
 }

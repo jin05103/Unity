@@ -434,6 +434,19 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void UpdatePanel()
+    {
+        for (int i = 0; i < WeaponSlots.Length; i++)
+        {
+            WeaponSlots[i].GetComponent<HandEquipmentSlotUI>().SetIcon(playerInventory.weaponInRightHandSlots[i]);
+        }
+        
+        for (int i = 0; i < ShieldSlots.Length; i++)
+        {
+            ShieldSlots[i].GetComponent<HandEquipmentSlotUI>().SetIcon(playerInventory.weaponInLeftHandSlots[i]);
+        }
+    }
+
     public void PotionTextUpdate(int amount)
     {
         restPotionText.SetActive(true);

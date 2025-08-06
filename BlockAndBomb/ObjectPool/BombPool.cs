@@ -32,7 +32,6 @@ public class BombPool : MonoBehaviour
         {
             bomb = Instantiate(bombPrefab, transform);
         }
-        bomb.gameObject.SetActive(true);
         return bomb;
     }
 

@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.AI;
 
 // 스폰 정보를 담을 데이터 클래스 정의
 [System.Serializable]
@@ -8,6 +9,7 @@ public class SpawnData
     public Transform spawnPoint;      // 적을 스폰할 위치
     public GameObject enemyPrefab;    // 스폰할 적 프리팹
     public GameObject enemyObject;    // 해당 위치에 생성된 적 인스턴스
+    public GameObject wall;
 }
 
 public class EnemySpawner : MonoBehaviour
@@ -33,7 +35,14 @@ public class EnemySpawner : MonoBehaviour
             {
                 if (!spawnData.enemyObject.activeSelf && spawnData.enemyObject.GetComponent<EnemyStats>().enemyType == EnemyType.Boss)
                 {
+                    spawnData.wall.SetActive(false);
                     return;
+                }
+                else if (spawnData.enemyObject.GetComponent<EnemyStats>().enemyType == EnemyType.Boss)
+                {
+                    spawnData.enemyObject.GetComponent<BossWall>().wall = spawnData.wall;
+                    spawnData.wall.SetActive(true);
+                    spawnData.wall.GetComponent<NavMeshObstacle>().enabled = true;
                 }
                 spawnData.enemyObject.SetActive(true);
                 enemyManager = spawnData.enemyObject.GetComponent<EnemyManager>();
@@ -43,6 +52,12 @@ public class EnemySpawner : MonoBehaviour
             else
             {
                 spawnData.enemyObject = Instantiate(spawnData.enemyPrefab);
+                if (spawnData.enemyObject.GetComponent<EnemyStats>().enemyType == EnemyType.Boss)
+                {
+                    spawnData.enemyObject.GetComponent<BossWall>().wall = spawnData.wall;
+                    spawnData.wall.SetActive(true);
+                    spawnData.wall.GetComponent<NavMeshObstacle>().enabled = true;
+                }
                 enemyManager = spawnData.enemyObject.GetComponent<EnemyManager>();
                 enemyManager.playerController = playerController;
                 enemyManager.SpawnEnemy(spawnData.spawnPoint);

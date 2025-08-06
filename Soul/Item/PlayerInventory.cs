@@ -1,9 +1,12 @@
+using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerInventory : MonoBehaviour
 {
+    [SerializeField] AnimationController animationController;
+    [SerializeField] UIManager uiManager;
     public WeaponSlotManager weaponSlotManager;
 
     public WeaponItem rightWeapon;
@@ -19,6 +22,10 @@ public class PlayerInventory : MonoBehaviour
 
     public List<WeaponItem> weaponsInventory;
 
+    public Save save;
+
+    public bool isTwoHanded = false;
+
     private void Awake()
     {
         weaponSlotManager = GetComponentInChildren<WeaponSlotManager>();
@@ -31,8 +38,79 @@ public class PlayerInventory : MonoBehaviour
 
         // weaponSlotManager.LoadWeaponOnSlot(rightWeapon, false);
         // weaponSlotManager.LoadWeaponOnSlot(leftWeapon, true);
-        rightWeapon = unarmedWeapon;
-        leftWeapon = unarmedWeapon;
+        // rightWeapon = unarmedWeapon;
+        // leftWeapon = unarmedWeapon;
+
+        InitializeInventory();
+    }
+
+    public void InitializeInventory()
+    {
+        if (save != null)
+        {
+            rightWeapon = save.rightWeapon;
+            leftWeapon = save.leftWeapon;
+
+            weaponInRightHandSlots = save.rightHandWeapons.ToArray();
+            weaponInLeftHandSlots = save.leftHandWeapons.ToArray();
+
+            currentRightWeaponIndex = save.currentRightWeaponIndex;
+            currentLeftWeaponIndex = save.currentLeftWeaponIndex;
+
+            isTwoHanded = save.isTwoHanded;
+
+            if (currentRightWeaponIndex == -1)
+            {
+                weaponSlotManager.LoadWeaponOnSlot(unarmedWeapon, false);
+            }
+            else
+            {
+                weaponSlotManager.LoadWeaponOnSlot(weaponInRightHandSlots[currentRightWeaponIndex], false);
+            }
+
+            if (currentLeftWeaponIndex == -1)
+            {
+                weaponSlotManager.LoadWeaponOnSlot(unarmedWeapon, true);
+            }
+            else
+            {
+                weaponSlotManager.LoadWeaponOnSlot(weaponInLeftHandSlots[currentLeftWeaponIndex], true);
+            }
+
+            if (!isTwoHanded)
+            {
+                if (leftWeapon.weaponType == WeaponType.shield)
+                {
+                    animationController.ChangeWeaponLayer(rightWeapon.weaponType, false, true);
+                }
+                else
+                {
+                    animationController.ChangeWeaponLayer(rightWeapon.weaponType, false, false);
+                }
+            }
+            else
+            {
+                animationController.ChangeWeaponLayer(rightWeapon.weaponType, true, false);
+            }
+
+            weaponsInventory = save.weaponsInventory;
+        }
+        else
+        {
+            rightWeapon = unarmedWeapon;
+            leftWeapon = unarmedWeapon;
+
+            weaponInRightHandSlots[0] = unarmedWeapon;
+            weaponInLeftHandSlots[0] = unarmedWeapon;
+
+            currentRightWeaponIndex = -1;
+            currentLeftWeaponIndex = -1;
+
+            weaponSlotManager.LoadWeaponOnSlot(unarmedWeapon, false);
+            weaponSlotManager.LoadWeaponOnSlot(unarmedWeapon, true);
+        }
+
+        uiManager.UpdatePanel();
     }
 
     public void ChangeRightWeapon()

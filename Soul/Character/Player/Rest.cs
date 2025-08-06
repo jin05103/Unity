@@ -13,7 +13,7 @@ public class Rest : Interactable
     private void RestPlayer(GameObject player)
     {
         PlayerController playerController = player.GetComponent<PlayerController>();
-        playerController.Rest();
+        playerController.Rest(transform); // 플레이어 휴식 메소드 호출
         enemySpawner.ResetEnemies(); // 적 리셋
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -7,6 +8,14 @@ public class Block : Installable
     public BlockType type;
     public SpriteRenderer spriteRenderer;
     public BoxCollider2D boxCollider;
+
+    private Coroutine damageFlashCoroutine;
+    private Color originalColor = Color.white;
+
+    private void OnEnable()
+    {
+        spriteRenderer.color = originalColor;
+    }
 
     public void Initialize(BlockType newType)
     {
@@ -43,7 +52,7 @@ public class Block : Installable
             boxCollider.enabled = true;
             Debug.Log($"Block at {gridPos} is not occupied by local player, enabling collider.");
         }
-        
+
 
         Initialize(newType);
     }
@@ -66,6 +75,29 @@ public class Block : Installable
     public float Mining(float damage)
     {
         hp -= damage;
+
         return hp;
+    }
+
+    public void ColorChange()
+    {
+        if (spriteRenderer != null)
+        {
+            if (damageFlashCoroutine != null)
+        {
+            StopCoroutine(damageFlashCoroutine);
+        }
+        damageFlashCoroutine = StartCoroutine(DamageFlash());
+        }
+    }
+
+    private IEnumerator DamageFlash()
+    {
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = Color.Lerp(originalColor, Color.red, 0.7f);
+            yield return new WaitForSeconds(0.2f);
+            spriteRenderer.color = originalColor;
+        }
     }
 }

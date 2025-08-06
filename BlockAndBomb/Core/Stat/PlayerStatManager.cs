@@ -27,6 +27,13 @@ public class PlayerStatManager : NetworkBehaviour
     [ClientRpc]
     void DrawAndShowStatPanelClientRpc()
     {
+        if (!IsOwner) return;
+        currentStatChoices = DrawRandomStats(3, allStats);
+        statPanel.ShowStats(currentStatChoices, OnStatSelected);
+    }
+
+    private void DrawAndShowPanel()
+    {
         currentStatChoices = DrawRandomStats(3, allStats);
         statPanel.ShowStats(currentStatChoices, OnStatSelected);
     }
@@ -60,19 +67,20 @@ public class PlayerStatManager : NetworkBehaviour
             playerStatus.statPoint.Value--;
         }
 
-        AfterSelectStatClientRpc(clientId);
+        AfterSelectStatClientRpc(clientId, playerStatus.statPoint.Value);
     }
 
     [ClientRpc]
-    private void AfterSelectStatClientRpc(ulong clientId)
+    private void AfterSelectStatClientRpc(ulong clientId, int statPoint)
     {
         if (!IsOwner) return;
 
         if (clientId != NetworkManager.Singleton.LocalClientId) return;
 
-        if (playerStatus.statPoint.Value >= 1)
+        if (statPoint >= 1)
         {
-            DrawAndShowStatPanelClientRpc();
+            // DrawAndShowStatPanelClientRpc();
+            DrawAndShowPanel();
         }
         else
         {

@@ -69,6 +69,7 @@ public class DamageCollider : MonoBehaviour
                 if (!playerStats.CheckImmune())
                 {
                     playerStats.TakeDamage(currentWeaponDamage, true);
+                    EffectManager.Instance.PlayFx(other.ClosestPoint(transform.position));
                     playerController.currentStaminaRegenDelay = playerStats.staminaRegenDelay;
                 }
             }
@@ -76,6 +77,7 @@ public class DamageCollider : MonoBehaviour
 
         if (other.tag == "Enemy" && root.tag == "Player")
         {
+            EffectManager.Instance.PlayFx(other.ClosestPoint(transform.position));
             damageCollider.enabled = false;
             EnemyStats enemyStats = other.GetComponent<EnemyStats>();
             PlayerStats playerStats = root.GetComponent<PlayerStats>();

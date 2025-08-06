@@ -8,7 +8,6 @@ using UnityEngine.UI;
 
 public class PlayerStatus : NetworkBehaviour
 {
-    [SerializeField] PlayerLevelManager playerLevelManager;
     [SerializeField] Animator animator;
     [SerializeField] PlayerStatManager playerStatManager;
 
@@ -75,6 +74,21 @@ public class PlayerStatus : NetworkBehaviour
         UnsubscribeExpPanel();
     }
 
+    private void Update()
+    {
+        if (IsServer && !isDead)
+        {
+            if (currentHp.Value < maxHp.Value)
+            {
+                currentHp.Value += Time.deltaTime * 0.1f; // HP 회복 속도
+                if (currentHp.Value > maxHp.Value)
+                {
+                    currentHp.Value = maxHp.Value; // 최대 HP 초과 방지
+                }
+            }
+        }
+    }
+
     private void OnMaxHpChanged(float previousValue, float newValue)
     {
         float diff = newValue - previousValue;
@@ -96,6 +110,7 @@ public class PlayerStatus : NetworkBehaviour
 
     private void UpdateUI(int a, int b)
     {
+        if (!IsOwner) return;
         if (UIManager.Instance == null) return;
         UIManager.Instance.UpdateResourceUI(
             currentBombCount.Value,
@@ -295,28 +310,25 @@ public class PlayerStatus : NetworkBehaviour
     [ClientRpc(RequireOwnership = false)]
     private void PlayerDeadClientRpc(ulong playerId)
     {
-        if (IsOwner)
+        var playerObj = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(playerId)?.gameObject;
+
+
+        if (playerObj != null)
         {
-            var playerObj = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(playerId)?.gameObject;
-
-
-            if (playerObj != null)
+            PlayerController playerController = playerObj.GetComponent<PlayerController>();
+            if (playerController != null)
             {
-                PlayerController playerController = playerObj.GetComponent<PlayerController>();
-                if (playerController != null)
-                {
-                    PlayerController.AlivePlayers.Remove(playerController);
-                    playerController.isAlive = false;
-                    playerController.Character.AnimationManager.SetState(CharacterState.Death);
+                PlayerController.AlivePlayers.Remove(playerController);
+                playerController.isAlive = false;
+                playerController.Character.AnimationManager.SetState(CharacterState.Death);
 
-                    StartCoroutine(HideDeadPlayer(playerController));
-                }
+                StartCoroutine(HideDeadPlayer(playerController));
+            }
 
-                CameraFollow cameraFollow = playerObj.GetComponent<CameraFollow>();
-                if (cameraFollow != null)
-                {
-                    cameraFollow.isDead = true;
-                }
+            CameraFollow cameraFollow = playerObj.GetComponent<CameraFollow>();
+            if (cameraFollow != null)
+            {
+                cameraFollow.isDead = true;
             }
         }
     }

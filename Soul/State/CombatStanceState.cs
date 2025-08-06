@@ -24,6 +24,7 @@ public class CombatStanceState : State
 
         if (enemyManager.distanceFromTarget > enemyManager.maximumAttackRange)
         {
+            enemyManager.navMeshAgent.Warp(enemyManager.transform.position);
             return pursueTargetState;
         }
 
